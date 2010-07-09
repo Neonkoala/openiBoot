@@ -171,7 +171,6 @@ int menu_setup(int timeout, int defaultOS) {
 
 	framebuffer_draw_image(imgHeader, imgHeaderX, imgHeaderY, imgHeaderWidth, imgHeaderHeight);
 
-
 	framebuffer_setloc(0, 47);
 	framebuffer_setcolors(COLOR_WHITE, 0x222222);
 	framebuffer_print_force(OPENIBOOT_VERSION_STR);
