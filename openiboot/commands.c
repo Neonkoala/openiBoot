@@ -29,7 +29,7 @@
 #include "als.h"
 #include "piezo.h"
 #include "vibrator.h"
-
+#define ENABLE_EXTRA
 void cmd_help(int argc, char** argv) {
     OPIBCommand* curCommand = CommandList;
     while(curCommand->name != NULL) {
