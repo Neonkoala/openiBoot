@@ -237,6 +237,34 @@ void framebuffer_draw_image(uint32_t* image, int x, int y, int width, int height
 		framebuffer_draw_image565(image, x, y, width, height);
 }
 
+/*static void framebuffer_draw_image888(uint32_t* image, int x, int y, int originX, int originY, int width, int height) {
+    register uint32_t sx;
+    register uint32_t sy;
+    for(sy = 0; sy < height; sy++) {
+        for(sx = 0; sx < width; sx++) {
+            *(PixelFromCoords(sx + x, sy + y)) = RGBA2BGR(image[(sy * width) + sx]);
+        }
+    }
+}
+
+static void framebuffer_draw_image565(uint32_t* image, int x, int y, int originX, int originY, int width, int height) {
+    register uint32_t sx;
+    register uint32_t sy;
+    for(sy = 0; sy < height; sy++) {
+        for(sx = 0; sx < width; sx++) {
+            *(PixelFromCoords565(sx + x, sy + y)) = RGB16(image[(sy * width) + sx]);
+        }
+    }
+}
+
+void framebuffer_draw_image(uint32_t* image, int x, int y, int originX, int originY, int width, int height)
+{
+    if(currentWindow->framebuffer.colorSpace == RGB888)
+        framebuffer_draw_image888(image, x, y, originX, originY, width, height);
+    else
+        framebuffer_draw_image565(image, x, y, originX, originY, width, height);
+}*/
+
 static void framebuffer_capture_image888(uint32_t* image, int x, int y, int width, int height) {
 	register uint32_t sx;
 	register uint32_t sy;
