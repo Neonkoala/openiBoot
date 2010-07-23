@@ -183,10 +183,10 @@ void* doInput(void* threadid) {
                 continue;
             
         } else if (strcmp(commandBuffer,"install") == 0) {
+            printf("Backing up the NOR\n");
             sprintf(toSendBuffer, "nor_read 0x09000000 0x0 1048576");
             sprintf(toSendBuffer,"~norbackup.dump:1048576"); 
             getFile(toSendBuffer);
-            printf("Backing up the NOR\n");
             InterestWrite = 1;
             commandBuffer[len] = '\n';
             pthread_mutex_lock(&lock);
