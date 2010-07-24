@@ -1,0 +1,1 @@
+loadibec openiboot.img3
