@@ -11,6 +11,7 @@ void boot_linux(const char* args);
 
 #ifndef NO_HFS
 void boot_linux_from_files();
+void boot_ix_from_files();
 #endif
 
 #endif

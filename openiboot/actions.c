@@ -471,17 +471,6 @@ void boot_ix_from_files()
 
 	set_ramdisk((void*) 0x09000000, size);
 
-	bufferPrintf("Loading rootfs...\r\n");
-
-	size = fs_extract(1, "/ix.img", (void*) 0x09000000);
-	if(size < 0)
-	{
-		bufferPrintf("Cannot find rootfs.\r\n");
-		return;
-	}
-
-	set_rootfs(0, "/private/var/ix.img");
-
 	bufferPrintf("Booting iX...\r\n");
 
 	boot_linux("root=/dev/ram0 init=/init rw");

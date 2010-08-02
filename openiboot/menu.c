@@ -10,9 +10,11 @@
 #include "images/ConsolePNG.h"
 #include "images/iPhoneOSPNG.h"
 #include "images/AndroidOSPNG.h"
+#include "images/ixPNG.h"
 #include "images/ConsoleSelectedPNG.h"
 #include "images/iPhoneOSSelectedPNG.h"
 #include "images/AndroidOSSelectedPNG.h"
+#include "images/ixSelectedPNG.h"
 #include "images/HeaderPNG.h"
 #include "images.h"
 #include "actions.h"
@@ -49,7 +51,14 @@ static int imgAndroidOSHeight;
 static int imgAndroidOSX;
 static int imgAndroidOSY;
 
+static uint32_t* imgix;
+static int imgixWidth;
+static int imgixHeight;
+static int imgixX;
+static int imgixY;
+
 static uint32_t* imgiPhoneOSSelected;
+static uint32_t* imgixSelected;
 static uint32_t* imgConsoleSelected;
 static uint32_t* imgAndroidOSSelected;
 
@@ -62,7 +71,8 @@ static int imgHeaderY;
 typedef enum MenuSelection {
 	MenuSelectioniPhoneOS,
 	MenuSelectionConsole,
-	MenuSelectionAndroidOS
+	MenuSelectionAndroidOS,
+	MenuSelectionix
 } MenuSelection;
 
 static MenuSelection Selection;
@@ -80,18 +90,28 @@ static void drawSelectionBox() {
 		framebuffer_draw_image(imgiPhoneOSSelected, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
 		framebuffer_draw_image(imgConsole, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
 		framebuffer_draw_image(imgAndroidOS, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
+		framebuffer_draw_image(imgix, imgixX, imgixY, imgixWidth, imgixHeight);
 	}
 
 	if(Selection == MenuSelectionConsole) {
 		framebuffer_draw_image(imgiPhoneOS, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
 		framebuffer_draw_image(imgConsoleSelected, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
 		framebuffer_draw_image(imgAndroidOS, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
+		framebuffer_draw_image(imgix, imgixX, imgixY, imgixWidth, imgixHeight);
 	}
 
 	if(Selection == MenuSelectionAndroidOS) {
 		framebuffer_draw_image(imgiPhoneOS, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
 		framebuffer_draw_image(imgConsole, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
 		framebuffer_draw_image(imgAndroidOSSelected, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
+		framebuffer_draw_image(imgix, imgixX, imgixY, imgixWidth, imgixHeight);
+	}
+
+	if(Selection == MenuSelectionix) {
+		framebuffer_draw_image(imgiPhoneOS, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
+		framebuffer_draw_image(imgConsole, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
+		framebuffer_draw_image(imgAndroidOS, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
+		framebuffer_draw_image(imgixSelected, imgixX, imgixY, imgixWidth, imgixHeight);
 	}
 
 	lcd_window_address(2, (uint32_t) CurFramebuffer);
@@ -113,6 +133,10 @@ static int touch_watcher()
         Selection = MenuSelectionAndroidOS;
         isFound = 1;
     }
+    else if (multitouch_ispoint_inside_region(imgixX, imgixY, imgixWidth, imgixHeight) == TRUE) {
+        Selection = MenuSelectionAndroidOS;
+        isFound = 1;
+    }
     
     if (isFound ==1) {
         drawSelectionBox();
@@ -129,15 +153,19 @@ static void toggle(int forward) {
 		else if(Selection == MenuSelectionConsole)
 			Selection = MenuSelectionAndroidOS;
 		else if(Selection == MenuSelectionAndroidOS)
+			Selection = MenuSelectionix;
+		else if(Selection == MenuSelectionix)
 			Selection = MenuSelectioniPhoneOS;
 	} else
 	{
 		if(Selection == MenuSelectioniPhoneOS)
-			Selection = MenuSelectionAndroidOS;
+			Selection = MenuSelectionix;
 		else if(Selection == MenuSelectionAndroidOS)
 			Selection = MenuSelectionConsole;
 		else if(Selection == MenuSelectionConsole)
 			Selection = MenuSelectioniPhoneOS;
+		else if(Selection == MenuSelectionix)
+			Selection = MenuSelectionAndroidOS;
 	}
 
 	drawSelectionBox();
@@ -153,21 +181,26 @@ int menu_setup(int timeout, int defaultOS) {
 	imgConsoleSelected = framebuffer_load_image(dataConsoleSelectedPNG, dataConsoleSelectedPNG_size, &imgConsoleWidth, &imgConsoleHeight, TRUE);
 	imgAndroidOS = framebuffer_load_image(dataAndroidOSPNG, dataAndroidOSPNG_size, &imgAndroidOSWidth, &imgAndroidOSHeight, TRUE);
 	imgAndroidOSSelected = framebuffer_load_image(dataAndroidOSSelectedPNG, dataAndroidOSSelectedPNG_size, &imgAndroidOSWidth, &imgAndroidOSHeight, TRUE);
+	imgix = framebuffer_load_image(dataixPNG, dataixPNG_size, &imgixWidth, &imgixHeight, TRUE);
+	imgixSelected = framebuffer_load_image(dataixSelectedPNG, dataixSelectedPNG_size, &imgixWidth, &imgixHeight, TRUE);
 	imgHeader = framebuffer_load_image(dataHeaderPNG, dataHeaderPNG_size, &imgHeaderWidth, &imgHeaderHeight, TRUE);
 
 	bufferPrintf("menu: images loaded\r\n");
 
 	imgiPhoneOSX = (FBWidth - imgiPhoneOSWidth) / 2;
-	imgiPhoneOSY = 84;
+	imgiPhoneOSY = 67;
 
 	imgConsoleX = (FBWidth - imgConsoleWidth) / 2;
-	imgConsoleY = 207;
+	imgConsoleY = 190;
 
 	imgAndroidOSX = (FBWidth - imgAndroidOSWidth) / 2;
-	imgAndroidOSY = 330;
+	imgAndroidOSY = 313;
+
+	imgixX = 20;
+	imgixY = 313;
 
 	imgHeaderX = (FBWidth - imgHeaderWidth) / 2;
-	imgHeaderY = 17;
+	imgHeaderY = 0;
 
 	framebuffer_draw_image(imgHeader, imgHeaderX, imgHeaderY, imgHeaderWidth, imgHeaderHeight);
 
@@ -186,6 +219,9 @@ int menu_setup(int timeout, int defaultOS) {
 			break;
 		case 2:
 			Selection = MenuSelectionConsole;
+			break;
+		case 3:
+			Selection = MenuSelectionix;
 			break;
 		default:
 			Selection = MenuSelectioniPhoneOS;
@@ -321,6 +357,41 @@ int menu_setup(int timeout, int defaultOS) {
 		pmu_set_iboot_stage(0);
 		startScripting("linux"); //start script mode if there is a script file
 		boot_linux_from_files();
+#endif
+	}
+	if(Selection == MenuSelectionix) {
+		// Reset framebuffer back to original if necessary
+		if((uint32_t) CurFramebuffer == NextFramebuffer)
+		{
+			CurFramebuffer = OtherFramebuffer;
+			currentWindow->framebuffer.buffer = CurFramebuffer;
+			lcd_window_address(2, (uint32_t) CurFramebuffer);
+		}
+
+		framebuffer_setdisplaytext(TRUE);
+		framebuffer_clear();
+
+#ifndef NO_HFS
+#ifndef CONFIG_IPOD
+		radio_setup();
+#endif
+		nand_setup();
+		fs_setup();
+		if(globalFtlHasBeenRestored) /* if ftl has been restored, sync it, so kernel doesn't have to do a ftl_restore again */
+		{
+			if(ftl_sync())
+			{
+				bufferPrintf("ftl synced successfully");
+			}
+			else
+			{
+				bufferPrintf("error syncing ftl");
+			}
+		}
+
+		pmu_set_iboot_stage(0);
+		startScripting("linux"); //start script mode if there is a script file
+		boot_ix_from_files();
 #endif
 	}
 
