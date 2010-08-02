@@ -183,15 +183,23 @@ void* doInput(void* threadid) {
                 continue;
             
         } else if (strcmp(commandBuffer,"install") == 0) {
-            printf("Backing up the NOR\n");
             sprintf(toSendBuffer, "nor_read 0x09000000 0x0 1048576");
-            sprintf(toSendBuffer,"~norbackup.dump:1048576"); 
-            getFile(toSendBuffer);
-	    sendBuffer("install", len + 1); 
+            
             InterestWrite = 1;
             commandBuffer[len] = '\n';
             pthread_mutex_lock(&lock);
             sendBuffer(toSendBuffer, strlen(toSendBuffer));
+            pthread_mutex_unlock(&lock);
+            InterestWrite = 0;
+            
+            sprintf(toSendBuffer,"~norbackup.dump:1048576"); 
+            getFile(toSendBuffer);
+            printf("Backing up the NOR\n");
+            InterestWrite = 1;
+            commandBuffer[len] = '\n';
+            pthread_mutex_lock(&lock);
+            printf("NOR backed up.\n");
+            sendBuffer("install", len + 1);
             pthread_mutex_unlock(&lock);
             InterestWrite = 0;
 		} else {
@@ -307,7 +315,6 @@ done:
 
 	printf("Client connected:\n");
     printf("!<filename>[@<address>] to send a file, ~<filename>[@<address>]:<len> to receive a file\n");
-    printf("type backup_nor to make a backup of your NOR before installing\n");
 	printf("---------------------------------------------------------------------------------------------------------\n");
 
 	pthread_create(&outputThread, NULL, doOutput, NULL);
@@ -318,4 +325,3 @@ done:
 	usb_release_interface(device, i);
 	usb_close(device);
 }
-
