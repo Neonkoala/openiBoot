@@ -237,6 +237,7 @@ int menu_setup(int timeout, int defaultOS) {
 	memcpy((void*)NextFramebuffer, (void*) CurFramebuffer, NextFramebuffer - (uint32_t)CurFramebuffer);
 
 	uint64_t startTime = timer_get_system_microtime();
+	uint64_t powerStartTime = timer_get_system_microtime();
 	int timeoutLeft = (timeout / 1000);
 	while(TRUE) {
 		char timeoutstr[4] = "";
@@ -271,13 +272,30 @@ int menu_setup(int timeout, int defaultOS) {
 	        	        udelay(100000);
   	        	}
         	}
+#ifdef CONFIG_IPOD
 		if(buttons_is_pushed(BUTTONS_HOLD)) {
-			toggle(TRUE);
+			toggle(FALSE);
 			startTime = timer_get_system_microtime();
-			timeout = -1;
 			udelay(200000);
 		}
+#endif
 #ifndef CONFIG_IPOD
+		if(buttons_is_pushed(BUTTONS_HOLD)) {
+
+			if(has_elapsed(powerStartTime, (uint64_t)300 * 1000)) {
+				
+			} else if(has_elapsed(powerStartTime, (uint64_t)200 * 1000)) {
+				toggle(TRUE);
+			} 
+
+			if(has_elapsed(powerStartTime, (uint64_t)2000 * 1000)) {
+				pmu_poweroff();
+			}
+			udelay(200000);
+		} else {
+			powerStartTime = timer_get_system_microtime();
+			udelay(200000);
+		}
 		if(!buttons_is_pushed(BUTTONS_VOLUP)) {
 			toggle(FALSE);
 			startTime = timer_get_system_microtime();
