@@ -237,7 +237,9 @@ int menu_setup(int timeout, int defaultOS) {
 	memcpy((void*)NextFramebuffer, (void*) CurFramebuffer, NextFramebuffer - (uint32_t)CurFramebuffer);
 
 	uint64_t startTime = timer_get_system_microtime();
+#ifndef CONFIG_IPOD
 	uint64_t powerStartTime = timer_get_system_microtime();
+#endif
 	int timeoutLeft = (timeout / 1000);
 	while(TRUE) {
 		char timeoutstr[4] = "";
