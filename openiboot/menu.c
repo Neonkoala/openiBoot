@@ -77,7 +77,7 @@ static void drawSelectionBox() {
 	currentWindow->framebuffer.buffer = CurFramebuffer;
 	OtherFramebuffer = oldFB;
 
-    /*int ii=0;
+    int ii=0;
     for (ii=0;ii<menuTheme->totalMenu;ii++) {
         if (SelectionIndex == ii) {
             framebuffer_draw_image(menuTheme->menus[ii]->imageFocused.image, menuTheme->menus[ii]->imageFocused.x, menuTheme->menus[ii]->imageFocused.y
@@ -86,7 +86,7 @@ static void drawSelectionBox() {
             framebuffer_draw_image(menuTheme->menus[ii]->imageNormal.image, menuTheme->menus[ii]->imageNormal.x, menuTheme->menus[ii]->imageNormal.y
             , menuTheme->menus[ii]->imageNormal.w, menuTheme->menus[ii]->imageNormal.h);
         }
-    } */   
+    }    
 
 	lcd_window_address(2, (uint32_t) CurFramebuffer);
 }
@@ -192,7 +192,7 @@ int menu_setup(int timeout, int defaultOS) {
     menuDefaultSetup();
 
     //setup text based menu
-    framebuffer_setloc(130, 20);
+    /*framebuffer_setloc(130, 20);
     framebuffer_setcolors(COLOR_WHITE, 0x228252);
     framebuffer_print_force(" iOS ");
     
@@ -202,7 +202,7 @@ int menu_setup(int timeout, int defaultOS) {
     
     framebuffer_setloc(128, 30);
     framebuffer_setcolors(COLOR_WHITE, 0x228252);
-    framebuffer_print_force(" Console \r");    
+    framebuffer_print_force(" Console \r");    */
     
 	framebuffer_setloc(0, 47);
 	framebuffer_setcolors(COLOR_WHITE, COLOR_BLACK);
