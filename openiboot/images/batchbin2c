@@ -1,0 +1,7 @@
+./bin2c dataAndroidOSPNG < AndroidOS.png > AndroidOSPNG.h
+./bin2c dataAndroidOSSelectedPNG < AndroidOSSelected.png > AndroidOSSelectedPNG.h
+./bin2c dataConsolePNG < Console.png > ConsolePNG.h
+./bin2c dataConsoleSelectedPNG < ConsoleSelected.png > ConsoleSelectedPNG.h
+./bin2c dataiPhoneOSPNG < iPhoneOS.png > iPhoneOSPNG.h
+./bin2c dataiPhoneOSSelectedPNG < iPhoneOSSelected.png > iPhoneOSSelectedPNG.h
+./bin2c dataHeaderPNG < Header.png > HeaderPNG.h
