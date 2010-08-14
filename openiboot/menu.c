@@ -24,6 +24,11 @@
 #include "ftl.h"
 #include "scripting.h"
 #include "multitouch.h"
+#include "nvram.h"
+
+#define CHAINLOAD 1
+#define CONSOLE 2
+#define LINUX 3
 
 int globalFtlHasBeenRestored; /* global variable to tell wether a ftl_restore has been done*/
 
@@ -64,6 +69,17 @@ typedef enum MenuSelection {
 	MenuSelectionConsole,
 	MenuSelectionAndroidOS
 } MenuSelection;
+
+typedef struct {
+	int option;
+	int type;
+	int uid;
+	char img3image[4];
+	char title[64];
+	char kernel[255];
+	char ramdisk[255];
+	char flags[255];
+} menuOption;
 
 static MenuSelection Selection;
 
@@ -143,7 +159,62 @@ static void toggle(int forward) {
 	drawSelectionBox();
 }
 
+int parse_menu_option(int option, menuOption *thisOption) {
+	char sOption = (char)(option+48);
+
+	char opibType[12] = "opib-type-";
+	char opibTitle[13] = "opib-title-";
+	char opibImg3[17] = "opib-img3image-";
+
+	opibType[10] = sOption;
+	const char *sType = nvram_getvar(opibType);
+	int type = parseNumber(sType);
+	thisOption[option].type = type;
+
+	opibTitle[11] = sOption;
+	const char *sTitle = nvram_getvar(opibTitle);
+	strcpy(thisOption[option].title, sTitle);
+
+	switch(type) {
+		case CHAINLOAD:
+			
+			opibImg3[15] = sOption;
+			const char *sImg3 = nvram_getvar(opibImg3);
+			strcpy(thisOption[option].img3image, sImg3);
+			break;
+		case CONSOLE:
+			break;
+		case LINUX:
+			break;
+		default:
+			return -1;
+	}
+
+	printf("Type: %d\n", thisOption[option].type);
+	printf("Title: %s\n", thisOption[option].title);
+	printf("IMG3: %s\n", thisOption[option].img3image);
+
+	return 0;
+}
+
 int menu_setup(int timeout, int defaultOS) {
+	//DEBUG:
+	framebuffer_setdisplaytext(TRUE);
+
+	const char *sNumOptions = nvram_getvar("opib-options");
+	int numOptions = parseNumber(sNumOptions);
+	int i;
+
+	printf("Option: %i\n", numOptions);
+	
+	menuOption menuConfig[numOptions];	
+
+	for(i=1;i<(numOptions+1);i++) {
+		parse_menu_option(i, menuConfig);
+	}
+
+	udelay(10000000);
+	
 	FBWidth = currentWindow->framebuffer.width;
 	FBHeight = currentWindow->framebuffer.height;	
 
