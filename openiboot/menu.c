@@ -71,10 +71,9 @@ typedef enum MenuSelection {
 } MenuSelection;
 
 typedef struct {
-	int option;
 	int type;
 	int uid;
-	char img3image[4];
+	char img3image[5];
 	char title[64];
 	char kernel[255];
 	char ramdisk[255];
@@ -163,13 +162,21 @@ int parse_menu_option(int option, menuOption *thisOption) {
 	char sOption = (char)(option+48);
 
 	char opibType[12] = "opib-type-";
+	char opibUid[11] = "opib-uid-";
 	char opibTitle[13] = "opib-title-";
 	char opibImg3[17] = "opib-img3image-";
+	char opibKernel[14] = "opib-kernel-";
+	char opibRamdisk[15] = "opib-ramdisk-";
+	char opibFlags[13] = "opib-flags-";
 
 	opibType[10] = sOption;
 	const char *sType = nvram_getvar(opibType);
 	int type = parseNumber(sType);
 	thisOption[option].type = type;
+
+	opibUid[9] = sOption;
+	const char *sUid = nvram_getvar(opibUid);
+	thisOption[option].uid = parseNumber(sUid);
 
 	opibTitle[11] = sOption;
 	const char *sTitle = nvram_getvar(opibTitle);
@@ -177,7 +184,6 @@ int parse_menu_option(int option, menuOption *thisOption) {
 
 	switch(type) {
 		case CHAINLOAD:
-			
 			opibImg3[15] = sOption;
 			const char *sImg3 = nvram_getvar(opibImg3);
 			strcpy(thisOption[option].img3image, sImg3);
@@ -185,14 +191,29 @@ int parse_menu_option(int option, menuOption *thisOption) {
 		case CONSOLE:
 			break;
 		case LINUX:
+			opibKernel[12] = sOption;
+			const char *sKernel = nvram_getvar(opibKernel);
+			strcpy(thisOption[option].kernel, sKernel);
+
+			opibRamdisk[13] = sOption;
+			const char *sRamdisk = nvram_getvar(opibRamdisk);
+			strcpy(thisOption[option].ramdisk, sRamdisk);
+
+			opibFlags[11] = sOption;
+			const char *sFlags = nvram_getvar(opibFlags);
+			strcpy(thisOption[option].flags, sFlags);
 			break;
 		default:
 			return -1;
 	}
 
 	printf("Type: %d\n", thisOption[option].type);
+	printf("UID: %d\n", thisOption[option].uid);
 	printf("Title: %s\n", thisOption[option].title);
 	printf("IMG3: %s\n", thisOption[option].img3image);
+	printf("Kernel: %s\n", thisOption[option].kernel);
+	printf("Ramdisk: %s\n", thisOption[option].ramdisk);
+	printf("Flags: %s\n", thisOption[option].flags);
 
 	return 0;
 }
