@@ -64,11 +64,7 @@ static int imgHeaderHeight;
 static int imgHeaderX;
 static int imgHeaderY;
 
-typedef enum MenuSelection {
-	MenuSelectioniPhoneOS,
-	MenuSelectionConsole,
-	MenuSelectionAndroidOS
-} MenuSelection;
+int numOptions;
 
 typedef struct {
 	int type;
@@ -82,7 +78,7 @@ typedef struct {
 	char rootfs[255];
 } menuOption;
 
-static MenuSelection Selection;
+int selection;
 
 volatile uint32_t* OtherFramebuffer;
 
@@ -141,20 +137,17 @@ static int touch_watcher()
 static void toggle(int forward) {
 	if(forward)
 	{
-		if(Selection == MenuSelectioniPhoneOS)
-			Selection = MenuSelectionConsole;
-		else if(Selection == MenuSelectionConsole)
-			Selection = MenuSelectionAndroidOS;
-		else if(Selection == MenuSelectionAndroidOS)
-			Selection = MenuSelectioniPhoneOS;
-	} else
-	{
-		if(Selection == MenuSelectioniPhoneOS)
-			Selection = MenuSelectionAndroidOS;
-		else if(Selection == MenuSelectionAndroidOS)
-			Selection = MenuSelectionConsole;
-		else if(Selection == MenuSelectionConsole)
-			Selection = MenuSelectioniPhoneOS;
+		if(selection == numOptions) {
+			selection = 0;
+		} else {
+			selection++;
+		}
+	} else {
+		if(selection == 0) {
+			selection = numOptions;
+		} else {
+			selection--;
+		}
 	}
 
 	drawSelectionBox();
@@ -218,15 +211,15 @@ int parse_menu_option(int option, menuOption *thisOption) {
 		default:
 			return -1;
 	}
-
+	/*
 	printf("Type: %d\n", thisOption[option].type);
 	printf("UID: %d\n", thisOption[option].uid);
 	printf("Title: %s\n", thisOption[option].title);
 	printf("IMG3: %s\n", thisOption[option].img3image);
 	printf("Kernel: %s\n", thisOption[option].kernel);
 	printf("Ramdisk: %s\n", thisOption[option].ramdisk);
-	printf("Flags: console=%s init=%s root=%s\n", thisOption[option].console, thisOption[option].init, thisOption[option].rootfs);
-
+	printf("Flags: console=%s init=%s root=%s\n\n\n", thisOption[option].console, thisOption[option].init, thisOption[option].rootfs);
+	*/
 	return 0;
 }
 
@@ -235,10 +228,10 @@ int menu_setup(int timeout, int defaultOS) {
 	framebuffer_setdisplaytext(TRUE);
 
 	const char *sNumOptions = nvram_getvar("opib-options");
-	int numOptions = parseNumber(sNumOptions);
+	numOptions = parseNumber(sNumOptions);
 	int i;
 
-	printf("Option: %i\n", numOptions);
+	printf("Options: %i\n", numOptions);
 	
 	menuOption menuConfig[numOptions];	
 
@@ -246,14 +239,34 @@ int menu_setup(int timeout, int defaultOS) {
 		parse_menu_option(i, menuConfig);
 	}
 
+	//Debug x,y co-ords (will be set by theme file eventually)
+	int titlexloc[] = {5,5,5};
+	int titleyloc[] = {5,15,25};
+
+	FBWidth = currentWindow->framebuffer.width;
+	FBHeight = currentWindow->framebuffer.height;
 	
+	framebuffer_setcolors(COLOR_WHITE, COLOR_BLACK);
+
+	for(i=0;i<numOptions;i++) {
+		framebuffer_setloc(titlexloc[i], titleyloc[i]);
+		framebuffer_print(menuConfig[i+1].title);
+
+		
+	}
+
+	framebuffer_setloc(0, 0);
+
+	OtherFramebuffer = CurFramebuffer;
+	CurFramebuffer = (volatile uint32_t*) NextFramebuffer;
+
+	memcpy((void*)NextFramebuffer, (void*) CurFramebuffer, NextFramebuffer - (uint32_t)CurFramebuffer);
 
 	udelay(10000000);
 
+	framebuffer_clear();
+
 	//Old stuff:
-	
-	FBWidth = currentWindow->framebuffer.width;
-	FBHeight = currentWindow->framebuffer.height;	
 
 	imgiPhoneOS = framebuffer_load_image(dataiPhoneOSPNG, dataiPhoneOSPNG_size, &imgiPhoneOSWidth, &imgiPhoneOSHeight, TRUE);
 	imgiPhoneOSSelected = framebuffer_load_image(dataiPhoneOSSelectedPNG, dataiPhoneOSSelectedPNG_size, &imgiPhoneOSWidth, &imgiPhoneOSHeight, TRUE);
@@ -285,7 +298,7 @@ int menu_setup(int timeout, int defaultOS) {
 	framebuffer_print_force(OPENIBOOT_VERSION_STR);
 	framebuffer_setloc(0, 0);
 
-	switch(defaultOS){
+	/*switch(defaultOS){
 		case 0:
 			Selection = MenuSelectioniPhoneOS;
 			break;
@@ -297,7 +310,9 @@ int menu_setup(int timeout, int defaultOS) {
 			break;
 		default:
 			Selection = MenuSelectioniPhoneOS;
-	}
+	}*/
+
+	selection = defaultOS;
 
 	OtherFramebuffer = CurFramebuffer;
 	CurFramebuffer = (volatile uint32_t*) NextFramebuffer;
@@ -310,6 +325,9 @@ int menu_setup(int timeout, int defaultOS) {
 
 	uint64_t startTime = timer_get_system_microtime();
 	int timeoutLeft = (timeout / 1000);
+
+		
+
 	while(TRUE) {
 		char timeoutstr[4] = "";
 		if(timeout > 0){
@@ -362,62 +380,75 @@ int menu_setup(int timeout, int defaultOS) {
 		udelay(10000);
 	}
 
-	if(Selection == MenuSelectioniPhoneOS) {
-		Image* image = images_get(fourcc("ibox"));
-		if(image == NULL)
-			image = images_get(fourcc("ibot"));
-		void* imageData;
-		images_read(image, &imageData);
-		chainload((uint32_t)imageData);
-	}
+	switch(menuConfig[selection].type) {
+		case CHAINLOAD:
+			Image* image = images_get(fourcc(menuConfig[selection].img3image));
+			if(strcmp(menuConfig[selection].img3image,"ibox") != 0 && image == NULL) {
+				image = images_get(fourcc("ibot"));	//We check this if oib isn't already installed
+			}
+			void* imageData;
+			images_read(image, &imageData);
+			chainload((uint32_t)imageData);
+			break;
 
-	if(Selection == MenuSelectionConsole) {
-		// Reset framebuffer back to original if necessary
-		if((uint32_t) CurFramebuffer == NextFramebuffer)
-		{
-			CurFramebuffer = OtherFramebuffer;
-			currentWindow->framebuffer.buffer = CurFramebuffer;
-			lcd_window_address(2, (uint32_t) CurFramebuffer);
-		}
+		case CONSOLE:
+			if((uint32_t) CurFramebuffer == NextFramebuffer)
+			{
+				CurFramebuffer = OtherFramebuffer;
+				currentWindow->framebuffer.buffer = CurFramebuffer;
+				lcd_window_address(2, (uint32_t) CurFramebuffer);
+			}
 
-		framebuffer_setdisplaytext(TRUE);
-		framebuffer_clear();
-	}
+			framebuffer_setdisplaytext(TRUE);
+			framebuffer_clear();
+			break;
 
-	if(Selection == MenuSelectionAndroidOS) {
-		// Reset framebuffer back to original if necessary
-		if((uint32_t) CurFramebuffer == NextFramebuffer)
-		{
-			CurFramebuffer = OtherFramebuffer;
-			currentWindow->framebuffer.buffer = CurFramebuffer;
-			lcd_window_address(2, (uint32_t) CurFramebuffer);
-		}
+		case LINUX:
+			// Reset framebuffer back to original if necessary
+			if((uint32_t) CurFramebuffer == NextFramebuffer)
+			{
+				CurFramebuffer = OtherFramebuffer;
+				currentWindow->framebuffer.buffer = CurFramebuffer;
+				lcd_window_address(2, (uint32_t) CurFramebuffer);
+			}
 
-		framebuffer_setdisplaytext(TRUE);
-		framebuffer_clear();
+			framebuffer_setdisplaytext(TRUE);
+			framebuffer_clear();
 
 #ifndef NO_HFS
 #ifndef CONFIG_IPOD
-		radio_setup();
+			radio_setup();
 #endif
-		nand_setup();
-		fs_setup();
-		if(globalFtlHasBeenRestored) /* if ftl has been restored, sync it, so kernel doesn't have to do a ftl_restore again */
-		{
-			if(ftl_sync())
+			nand_setup();
+			fs_setup();
+			if(globalFtlHasBeenRestored) /* if ftl has been restored, sync it, so kernel doesn't have to do a ftl_restore again */
 			{
-				bufferPrintf("ftl synced successfully");
+				if(ftl_sync())
+				{
+					bufferPrintf("ftl synced successfully");
+				}
+				else
+				{
+					bufferPrintf("error syncing ftl");
+				}
 			}
-			else
-			{
-				bufferPrintf("error syncing ftl");
-			}
-		}
 
-		pmu_set_iboot_stage(0);
-		startScripting("linux"); //start script mode if there is a script file
-		boot_linux_from_files();
+			pmu_set_iboot_stage(0);
+			startScripting("linux"); //start script mode if there is a script file
+			boot_linux_from_files(); //Replace me!!!
 #endif
+			break;
+
+		default:
+			//Chainload iOS as backup
+			Image* image = images_get(fourcc("ibox"));
+			if(image == NULL) {
+				image = images_get(fourcc("ibot"));
+			}
+			void* imageData;
+			images_read(image, &imageData);
+			chainload((uint32_t)imageData);
+			break;
 	}
 
 	return 0;
