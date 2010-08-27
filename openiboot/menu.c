@@ -77,7 +77,9 @@ typedef struct {
 	char title[64];
 	char kernel[255];
 	char ramdisk[255];
-	char flags[255];
+	char console[255];
+	char init[255];
+	char rootfs[255];
 } menuOption;
 
 static MenuSelection Selection;
@@ -167,7 +169,9 @@ int parse_menu_option(int option, menuOption *thisOption) {
 	char opibImg3[17] = "opib-img3image-";
 	char opibKernel[14] = "opib-kernel-";
 	char opibRamdisk[15] = "opib-ramdisk-";
-	char opibFlags[13] = "opib-flags-";
+	char opibConsole[15] = "opib-console-";
+	char opibInit[12] = "opib-init-";
+	char opibRootFS[12] = "opib-root-";
 
 	opibType[10] = sOption;
 	const char *sType = nvram_getvar(opibType);
@@ -199,9 +203,17 @@ int parse_menu_option(int option, menuOption *thisOption) {
 			const char *sRamdisk = nvram_getvar(opibRamdisk);
 			strcpy(thisOption[option].ramdisk, sRamdisk);
 
-			opibFlags[11] = sOption;
-			const char *sFlags = nvram_getvar(opibFlags);
-			strcpy(thisOption[option].flags, sFlags);
+			opibConsole[13] = sOption;
+			const char *sConsole = nvram_getvar(opibConsole);
+			strcpy(thisOption[option].console, sConsole);
+
+			opibInit[10] = sOption;
+			const char *sInit = nvram_getvar(opibInit);
+			strcpy(thisOption[option].init, sInit);
+			
+			opibRootFS[10] = sOption;
+			const char *sRootFS = nvram_getvar(opibRootFS);
+			strcpy(thisOption[option].rootfs, sRootFS);
 			break;
 		default:
 			return -1;
@@ -213,7 +225,7 @@ int parse_menu_option(int option, menuOption *thisOption) {
 	printf("IMG3: %s\n", thisOption[option].img3image);
 	printf("Kernel: %s\n", thisOption[option].kernel);
 	printf("Ramdisk: %s\n", thisOption[option].ramdisk);
-	printf("Flags: %s\n", thisOption[option].flags);
+	printf("Flags: console=%s init=%s root=%s\n", thisOption[option].console, thisOption[option].init, thisOption[option].rootfs);
 
 	return 0;
 }
@@ -234,7 +246,11 @@ int menu_setup(int timeout, int defaultOS) {
 		parse_menu_option(i, menuConfig);
 	}
 
+	
+
 	udelay(10000000);
+
+	//Old stuff:
 	
 	FBWidth = currentWindow->framebuffer.width;
 	FBHeight = currentWindow->framebuffer.height;	
