@@ -89,27 +89,27 @@ static void drawSelectionBox() {
 	currentWindow->framebuffer.buffer = CurFramebuffer;
 	OtherFramebuffer = oldFB;
 
-	if(Selection == MenuSelectioniPhoneOS) {
+	if(selection == 0) {
 		framebuffer_draw_image(imgiPhoneOSSelected, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
 		framebuffer_draw_image(imgConsole, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
 		framebuffer_draw_image(imgAndroidOS, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
 	}
 
-	if(Selection == MenuSelectionConsole) {
-		framebuffer_draw_image(imgiPhoneOS, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
-		framebuffer_draw_image(imgConsoleSelected, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
-		framebuffer_draw_image(imgAndroidOS, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
-	}
-
-	if(Selection == MenuSelectionAndroidOS) {
+	if(selection == 1) {
 		framebuffer_draw_image(imgiPhoneOS, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
 		framebuffer_draw_image(imgConsole, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
 		framebuffer_draw_image(imgAndroidOSSelected, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
 	}
 
+	if(selection == 2) {
+		framebuffer_draw_image(imgiPhoneOS, imgiPhoneOSX, imgiPhoneOSY, imgiPhoneOSWidth, imgiPhoneOSHeight);
+		framebuffer_draw_image(imgConsoleSelected, imgConsoleX, imgConsoleY, imgConsoleWidth, imgConsoleHeight);
+		framebuffer_draw_image(imgAndroidOS, imgAndroidOSX, imgAndroidOSY, imgAndroidOSWidth, imgAndroidOSHeight);
+	}
+
 	lcd_window_address(2, (uint32_t) CurFramebuffer);
 }
-
+/* Die multitouch!
 static int touch_watcher()
 {
     uint8_t isFound = 0;
@@ -132,7 +132,7 @@ static int touch_watcher()
         return TRUE;
     }
     return FALSE;
-}
+}*/
 
 static void toggle(int forward) {
 	if(forward)
@@ -211,6 +211,8 @@ int parse_menu_option(int option, menuOption *thisOption) {
 		default:
 			return -1;
 	}
+
+	//DEBUG:
 	/*
 	printf("Type: %d\n", thisOption[option].type);
 	printf("UID: %d\n", thisOption[option].uid);
@@ -241,7 +243,10 @@ int menu_setup(int timeout, int defaultOS) {
 
 	//Debug x,y co-ords (will be set by theme file eventually)
 	int titlexloc[] = {5,5,5};
-	int titleyloc[] = {5,15,25};
+	int titleyloc[] = {5,25,35};
+
+	int imgxloc[] = {5,5,5};
+	int imgyloc[] = {84,207,330};
 
 	FBWidth = currentWindow->framebuffer.width;
 	FBHeight = currentWindow->framebuffer.height;
@@ -257,48 +262,44 @@ int menu_setup(int timeout, int defaultOS) {
 
 	framebuffer_setloc(0, 0);
 
-	OtherFramebuffer = CurFramebuffer;
-	CurFramebuffer = (volatile uint32_t*) NextFramebuffer;
-
-	memcpy((void*)NextFramebuffer, (void*) CurFramebuffer, NextFramebuffer - (uint32_t)CurFramebuffer);
-
-	udelay(10000000);
-
-	framebuffer_clear();
-
 	//Old stuff:
 
 	imgiPhoneOS = framebuffer_load_image(dataiPhoneOSPNG, dataiPhoneOSPNG_size, &imgiPhoneOSWidth, &imgiPhoneOSHeight, TRUE);
 	imgiPhoneOSSelected = framebuffer_load_image(dataiPhoneOSSelectedPNG, dataiPhoneOSSelectedPNG_size, &imgiPhoneOSWidth, &imgiPhoneOSHeight, TRUE);
+
+	/* Stopping compile bugs for now cba to remove */
 	imgConsole = framebuffer_load_image(dataConsolePNG, dataConsolePNG_size, &imgConsoleWidth, &imgConsoleHeight, TRUE);
 	imgConsoleSelected = framebuffer_load_image(dataConsoleSelectedPNG, dataConsoleSelectedPNG_size, &imgConsoleWidth, &imgConsoleHeight, TRUE);
 	imgAndroidOS = framebuffer_load_image(dataAndroidOSPNG, dataAndroidOSPNG_size, &imgAndroidOSWidth, &imgAndroidOSHeight, TRUE);
 	imgAndroidOSSelected = framebuffer_load_image(dataAndroidOSSelectedPNG, dataAndroidOSSelectedPNG_size, &imgAndroidOSWidth, &imgAndroidOSHeight, TRUE);
 	imgHeader = framebuffer_load_image(dataHeaderPNG, dataHeaderPNG_size, &imgHeaderWidth, &imgHeaderHeight, TRUE);
+	
 
-	bufferPrintf("menu: images loaded\r\n");
+	//bufferPrintf("menu: images loaded\r\n");
 
-	imgiPhoneOSX = (FBWidth - imgiPhoneOSWidth) / 2;
-	imgiPhoneOSY = 84;
+	imgiPhoneOSX = imgxloc[0];
+	imgiPhoneOSY = imgyloc[0];
 
-	imgConsoleX = (FBWidth - imgConsoleWidth) / 2;
-	imgConsoleY = 207;
+	imgAndroidOSX = imgxloc[1];
+	imgAndroidOSY = imgyloc[1];
 
-	imgAndroidOSX = (FBWidth - imgAndroidOSWidth) / 2;
-	imgAndroidOSY = 330;
+	imgConsoleX = imgxloc[2];
+	imgConsoleY = imgyloc[2];
 
 	imgHeaderX = (FBWidth - imgHeaderWidth) / 2;
 	imgHeaderY = 17;
 
 	framebuffer_draw_image(imgHeader, imgHeaderX, imgHeaderY, imgHeaderWidth, imgHeaderHeight);
 
-
+	/* Not important for now
 	framebuffer_setloc(0, 47);
 	framebuffer_setcolors(COLOR_WHITE, COLOR_BLACK);
 	framebuffer_print_force(OPENIBOOT_VERSION_STR);
 	framebuffer_setloc(0, 0);
+	*/
 
-	/*switch(defaultOS){
+	/* Old stuff for ref
+	switch(defaultOS){
 		case 0:
 			Selection = MenuSelectioniPhoneOS;
 			break;
@@ -312,7 +313,8 @@ int menu_setup(int timeout, int defaultOS) {
 			Selection = MenuSelectioniPhoneOS;
 	}*/
 
-	selection = defaultOS;
+	//selection = defaultOS;
+	selection = 0;
 
 	OtherFramebuffer = CurFramebuffer;
 	CurFramebuffer = (volatile uint32_t*) NextFramebuffer;
@@ -322,13 +324,16 @@ int menu_setup(int timeout, int defaultOS) {
 	pmu_set_iboot_stage(0);
 
 	memcpy((void*)NextFramebuffer, (void*) CurFramebuffer, NextFramebuffer - (uint32_t)CurFramebuffer);
-
+	
+	
 	uint64_t startTime = timer_get_system_microtime();
+/*Disable timeout for now
 	int timeoutLeft = (timeout / 1000);
-
+	*/
 		
 
 	while(TRUE) {
+		/*Timeout/MT disable
 		char timeoutstr[4] = "";
 		if(timeout > 0){
 			sprintf(timeoutstr, "%2d", timeoutLeft);
@@ -348,7 +353,7 @@ int menu_setup(int timeout, int defaultOS) {
 		}
 		if (isMultitouchLoaded && touch_watcher()) {
 			break;
-        	}
+        	}*/
 		if(buttons_is_pushed(BUTTONS_HOLD)) {
 			toggle(TRUE);
 			startTime = timer_get_system_microtime();
@@ -373,20 +378,25 @@ int menu_setup(int timeout, int defaultOS) {
 			timeout = -1;
 			break;
 		}
+		/*
 		if(timeout > 0 && has_elapsed(startTime, (uint64_t)timeout * 1000)) {
 			bufferPrintf("menu: timed out, selecting current item\r\n");
 			break;
 		}
+		*/
 		udelay(10000);
 	}
 
-	switch(menuConfig[selection].type) {
+	//C doesn't like declarations in switch statements grr!
+	Image* image;
+	void* imageData;
+
+	switch(menuConfig[selection+1].type) {
 		case CHAINLOAD:
-			Image* image = images_get(fourcc(menuConfig[selection].img3image));
-			if(strcmp(menuConfig[selection].img3image,"ibox") != 0 && image == NULL) {
+			image = images_get(fourcc(menuConfig[selection+1].img3image));
+			if(strcmp(menuConfig[selection+1].img3image,"ibox") != 0 && image == NULL) {
 				image = images_get(fourcc("ibot"));	//We check this if oib isn't already installed
 			}
-			void* imageData;
 			images_read(image, &imageData);
 			chainload((uint32_t)imageData);
 			break;
@@ -441,11 +451,10 @@ int menu_setup(int timeout, int defaultOS) {
 
 		default:
 			//Chainload iOS as backup
-			Image* image = images_get(fourcc("ibox"));
+			image = images_get(fourcc("ibox"));
 			if(image == NULL) {
 				image = images_get(fourcc("ibot"));
 			}
-			void* imageData;
 			images_read(image, &imageData);
 			chainload((uint32_t)imageData);
 			break;
