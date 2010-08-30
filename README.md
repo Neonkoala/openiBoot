@@ -28,6 +28,8 @@ Wait, for a long time, as the toolchain is compiled.
 To run openiboot from the recovery mode (a.k.a iboot), you’ll need to create an img3 image.
 You will need a system capable of running x86 Linux binaries (Build requires libusb, libreadline and pthread). If compiling on 64-bit linux, you may need libc6-dev-i386 and type export ARCH=x86_64 before you proceed with the next steps, All community builds are run on an Ubuntu 10.04 Lucid Lynx system.
 
+Change into the openiboot subfolder
+
 **For iPod touch, run:**
 `PLATFORM=IPOD make openiboot.img3`
 
@@ -38,21 +40,23 @@ You will need a system capable of running x86 Linux binaries (Build requires lib
 `PLATFORM=3G make openiboot.img3`
 
 **Compile all in tools/client/:**
-`cd tools/client && make all && cd ..`
+`cd tools/client/linux && make all && cd ..`
+
+- The linux client will also build on OSX with the correct libusb version installed.
 
 2. Installing
 ---------------------------------------------------
-**Copy openiboot.img3 into tools/client**
+**Copy openiboot.img3 into tools/client/linux**
 
 **Put your phone into recovery mode**: hold home whilst powering on until you see the iTunes logo.
 
 **Run:** 
-`sudo tools/client/loadibec openiboot.img3`
+`sudo tools/client/linux/loadibec openiboot.img3`
 
 You should now see openiBoot on your phone, use the volume buttons to scroll to the console icon, then press home
 
 **Run the client:**
-sudo client/oibc
+sudo client/linux/oibc
 
 *NOTE: If you are on a mac, you will most likely need to do this as soon as you have selected the console - Linux does not manifest this issue.*
 
@@ -65,12 +69,68 @@ This will take a while, your NOR will be backed up during this process, and can 
 
 3. Installing multitouch firmware
 --------------------------------------------------
-See the guides at the [iDroid Project Development site][1] for a HOWTO
+A. iPhone 3G user:
+
+   1. Convert zephyr2.bin
+ *  Go to "openiboot/mk8900image"
+ *  From "openiboot/mk8900image" execute this command (please adjust path to your firmware location): 
+
+	>mk8900image zephyr2.bin zephyr2.img3 template-3g.img3
+
+ *  Using your favorite hex editor, edit "zephyr2.img3"
+     change data at offset 0x10 to 0x13 from *cebi* to *2ztm* and save it.
+
+   2. Installing zephyr2.img3
+*   Run oibc executable
+*   From oibc prompt send "zephyr2.img3" to your iphone (default address is 0x09000000):
+
+	>!zephyr2.img3
+
+	It will return this: file received (XXXXX bytes).
+
+*   Install the firmware from the address and with the size the upload command returned:
+
+    >multitouch_fw_install 0x09000000 XXXXX
+
+
+B. iPhone 2G user:
+
+   1. Convert zephyr_aspeed.bin and zephyr_main.bin
+*   Go to "openiboot/mk8900image"
+*   From "openiboot/mk8900image" execute this command (please adjust path to your firmware location): 
+
+	>mk8900image zephyr_aspeed.bin to zephyr_aspeed.img3 template.img3
+
+*   Using your favorite hex editor, edit "zephyr_aspeed.img3"
+     change data at offset 0x10 to 0x13 from *cebi* to *aztm* and save it.
+
+*   From "openiboot/mk8900image" execute this command (please adjust path to your firmware location): 
+
+	>mk8900image zephyr_main.bin to zephyr_main.img3 template.img3
+
+*   Using your favorite hex editor, edit "zephyr_main.img3"
+     change data at offset 0x10 to 0x13 from *cebi* to *mztm* and save it.
+
+   2. Installing firmwares
+*   Run oibc executable
+*   From oibc prompt send "zephyr_aspeed.img3" to your iphone (default address is 0x09000000):
+
+	>!zephyr_aspeed.img3
+
+     It will return this: file received (XXXXX bytes).
+*   From oibc prompt send "zephyr_main.img3" to your iphone, in this case we will copy to memory location next to zephyr_aspeed.img:
+
+	>!zephyr_main.img3@0x09000000+XXXXX
+
+     It will return this: file received (YYYYY bytes).
+
+*   Install the firmware from the address and with the size the upload command returned:
+
+	>multitouch_fw_install 0x09000000 XXXXX 0x09000000+XXXX YYYYY
+
 
 4. Reporting issues/requesting features
 --------------------------------------------------
-The iDroid Project has an issue tracking system set up to handle bug reports & feature requests, please see [http://dev.idroidproject.org/projects/openiboot][2] for more information.
+The iDroid Project has an issue tracking system set up to handle bug reports & feature requests, please see [http://dev.idroidproject.org/projects/openiboot][1] for more information.
 
-
-  [1]: http://dev.idroidproject.org/projects/openiboot/documents
-  [2]: http://dev.idroidproject.org/projects/openiboot
+  [1]: http://dev.idroidproject.org/projects/openiboot

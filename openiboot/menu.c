@@ -102,15 +102,15 @@ static int touch_watcher()
             if (multitouch_ispoint_inside_region(menuTheme->menus[ii]->imageFocused.x, menuTheme->menus[ii]->imageFocused.y, 
                 menuTheme->menus[ii]->imageFocused.w, menuTheme->menus[ii]->imageFocused.h) == TRUE) {
                 SelectionIndex=ii;
-            drawSelectionBox();
-            return TRUE;
+                drawSelectionBox();
+                return TRUE;
             }
         } else {
             if (multitouch_ispoint_inside_region(menuTheme->menus[ii]->imageNormal.x, menuTheme->menus[ii]->imageNormal.y, 
                 menuTheme->menus[ii]->imageNormal.w, menuTheme->menus[ii]->imageNormal.h) == TRUE) {
                 SelectionIndex=ii;
-            drawSelectionBox();
-            return TRUE;
+                drawSelectionBox();
+                return TRUE;
             }
         }
     }  
@@ -185,6 +185,10 @@ static void menuDefaultSetup() {
     framebuffer_draw_image(imgHeader, imgHeaderX, imgHeaderY, imgHeaderWidth, imgHeaderHeight);
 }
 
+int menuThemeSetup() 
+{
+}
+
 int menu_setup(int timeout, int defaultOS) {
 	FBWidth = currentWindow->framebuffer.width;
 	FBHeight = currentWindow->framebuffer.height;	
@@ -208,20 +212,7 @@ int menu_setup(int timeout, int defaultOS) {
 	framebuffer_setcolors(COLOR_WHITE, COLOR_BLACK);
 	framebuffer_print_force(OPENIBOOT_VERSION_STR);
 	framebuffer_setloc(0, 0);
-    SelectionIndex=defaultOS;
-	/*switch(defaultOS){
-		case 0:
-			Selection = MenuSelectioniPhoneOS;
-			break;
-		case 1:
-			Selection = MenuSelectionAndroidOS;
-			break;
-		case 2:
-			Selection = MenuSelectionConsole;
-			break;
-		default:
-			Selection = MenuSelectioniPhoneOS;
-	}*/
+    SelectionIndex=defaultOS;	
 
 	OtherFramebuffer = CurFramebuffer;
 	CurFramebuffer = (volatile uint32_t*) NextFramebuffer;
