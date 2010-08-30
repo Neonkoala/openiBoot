@@ -187,6 +187,7 @@ static void menuDefaultSetup() {
 
 int menuThemeSetup() 
 {
+	return 0;
 }
 
 int menu_setup(int timeout, int defaultOS) {
