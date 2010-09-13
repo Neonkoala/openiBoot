@@ -64,8 +64,6 @@ static int imgHeaderHeight;
 static int imgHeaderX;
 static int imgHeaderY;
 
-int numOptions;
-
 typedef struct {
 	int type;
 	int uid;
@@ -78,6 +76,7 @@ typedef struct {
 	char rootfs[255];
 } menuOption;
 
+int numOptions;
 int selection;
 
 volatile uint32_t* OtherFramebuffer;
@@ -239,14 +238,14 @@ int menu_setup(int timeout, int defaultOS) {
 
 	for(i=1;i<(numOptions+1);i++) {
 		parse_menu_option(i, menuConfig);
-	}
+	}	
 
 	//Debug x,y co-ords (will be set by theme file eventually)
 	int titlexloc[] = {5,5,5};
-	int titleyloc[] = {5,25,35};
+	int titleyloc[] = {5,18,32};
 
 	int imgxloc[] = {5,5,5};
-	int imgyloc[] = {84,207,330};
+	int imgyloc[] = {70,210,345};
 
 	FBWidth = currentWindow->framebuffer.width;
 	FBHeight = currentWindow->framebuffer.height;
@@ -256,7 +255,6 @@ int menu_setup(int timeout, int defaultOS) {
 	for(i=0;i<numOptions;i++) {
 		framebuffer_setloc(titlexloc[i], titleyloc[i]);
 		framebuffer_print(menuConfig[i+1].title);
-
 		
 	}
 
